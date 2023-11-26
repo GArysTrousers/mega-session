@@ -1,0 +1,24 @@
+{
+  "name": "session-manager",
+  "version": "0.0.1",
+  "description": "Session Manager",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
+  "scripts": {
+    "build": "rimraf ./dist && npx tsc",
+    "test": "npx tsc && node --test",
+    "test-q": "node --test",
+    "test-c": "rimraf ./dist && npx tsc && node --test"
+  },
+  "author": "GArysTrousers",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.6.3",
+    "typescript": "^5.2.2",
+    "rimraf": "^5.0.1"
+  },
+  "dependencies": {}
+}
