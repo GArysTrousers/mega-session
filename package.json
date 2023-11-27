@@ -17,8 +17,12 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.6.3",
-    "typescript": "^5.2.2",
-    "rimraf": "^5.0.1"
+    "@types/uuid": "^9.0.7",
+    "rimraf": "^5.0.1",
+    "typescript": "^5.2.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "redis": "^4.6.11",
+    "uuid": "^9.0.1"
+  }
 }
