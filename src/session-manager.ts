@@ -29,11 +29,11 @@ export class SessionManager {
     await this.redis.disconnect()
   }
 
-  async getSession(id: string) {
+  async getSession(id: string): Promise<Session | null> {
     if (!id) return null;
     let session = await this.redis.get(id);
     return session
-      ? JSON.parse(session)
+      ? JSON.parse(session) as Session
       : null
   }
 

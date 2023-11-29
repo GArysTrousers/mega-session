@@ -25,6 +25,7 @@ test("Session Manager", async () => {
   await test("remove sessions", async () => {
     for(let id of createdSessions) {
       assert.ok(await sm.removeSession(id))
+      assert.equal(null, await sm.getSession(id))
     }
   })
   await sm.disconnect();
