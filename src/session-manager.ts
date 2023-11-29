@@ -10,16 +10,23 @@ export interface Session {
 export class SessionManager {
 
   version: string;
+  dbIndex: number
   redis: RedisClientType;
-
 
   constructor(redisUrl: string, redisDbIndex: number | string, version: string) {
     this.version = version;
     this.redis = createClient({ url: redisUrl });
-    this.redis.on('error', (err) => console.log('Redis Client Error', err));
-    this.redis.connect().then(() => {
-      this.redis.select(Number(redisDbIndex));
-    });
+    this.redis.on('error', (err) => console.log(err));
+    this.dbIndex = Number(redisDbIndex)
+  }
+
+  async connect() {
+    await this.redis.connect();
+    await this.redis.select(this.dbIndex);
+  }
+
+  async disconnect() {
+    await this.redis.disconnect()
   }
 
   async getSession(id: string) {
@@ -30,7 +37,7 @@ export class SessionManager {
       : null
   }
 
-  async newSession(data: any = {}): Promise<[string, Session]> {
+  newSession(data: any = {}): [string, Session] {
     let id = uuid();
     let session: Session = {
       v: this.version,
@@ -41,7 +48,7 @@ export class SessionManager {
   }
 
   async saveSession(id: string, session: Session) {
-    await this.redis.set(id, JSON.stringify(session));
+    return await this.redis.set(id, JSON.stringify(session)) === "OK";
   }
 
   async getSessionCount() {
@@ -70,7 +77,7 @@ export class SessionManager {
   }
 
   async removeSession(id: string) {
-    return await this.redis.del([id])
+    return await this.redis.del([id]) > 0
   }
 
   async removeSessionsOlderThan(millis: number) {
