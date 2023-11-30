@@ -10,9 +10,9 @@ export interface Session {
 export interface Options {
   redis: {
     url:string;
+    db: string | number;
     user: string;
     password: string;
-    db: string | number;
   }
   version: string;
   timeoutMillis: number;
@@ -44,7 +44,7 @@ export class SessionManager {
     let session = await this.getSession(id)
 
     if (session == null) return this.newSession()
-    if (session.lastUsed < Date.now() - this.options.timeoutMillis) {
+    if (session.lastUsed < Date.now() - this.options.timeoutMillis || session.v != this.options.version) {
       await this.removeSession(id)
       return this.newSession()
     }
@@ -96,8 +96,11 @@ export class SessionManager {
     let sessionData = await Promise.all(keys.map(async (v) => {
       return await this.redis.get(v)
     }))
-    let sessions = keys.map((v, i) => {
-      return { id: v, data: sessionData[i] }
+    let sessions = keys.map((id, i) => {
+      return { 
+        id: id, 
+        session: JSON.parse(sessionData[i]) as Session
+      }
     })
     return sessions
   }
@@ -106,26 +109,18 @@ export class SessionManager {
     return await this.redis.del([id]) > 0
   }
 
-  async removeSessionsOlderThan(millis: number) {
+  async removeOldSessions() {
     const sessions = await this.getAllSessions();
     let clearedCount = 0
     for (let s of sessions) {
       try {
-        let data = JSON.parse(s.data!) as Session
-        if (!Object.hasOwn(data, 'user')) {
+        if (s.session.v !== this.options.version) {
           clearedCount++;
           this.removeSession(s.id);
-          continue;
         }
-        if (data.v !== this.options.version) {
+        else if (s.session.lastUsed < Date.now() - this.options.timeoutMillis) {
           clearedCount++;
           this.removeSession(s.id);
-          continue;
-        }
-        if (data.lastUsed < Date.now() - millis) {
-          clearedCount++;
-          this.removeSession(s.id);
-          continue;
         }
       } catch (error) {
         console.log(error);

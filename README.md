@@ -1,12 +1,20 @@
-# Session Manager
+# Redis Session Manager
 
-A session manager designed for sveltekit
+A redis session manager (mainly designed for sveltekit)
 
 ## SvelteKit Example
 In your hooks.server.ts handle:
 ```
-const timeout = 1000 * 60 * 60 * 24 * 3; // 3 days in millis
-const sm = new SessionManager('redis://localhost:6379', 0, "1", timout)
+let sm = new SessionManager({
+    redis: {
+        url: "redis://localhost:6379",
+        user: "",
+        password: "",
+        db: 0
+    },
+    version: "1",
+    timeoutMillis: 1000 * 60 * 60 * 24 * 3; // 3 days in millis
+})
 
 export const handle: Handle = async ({ event, resolve }) => {
     // get sessionId cookie
@@ -32,3 +40,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 event.locals.sessionId = null
 ```
 
+## Session Cleanup
+You can run a periodic cleanup by running:
+```
+await sm.removeOldSessions()
+```

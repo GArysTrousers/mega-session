@@ -1,7 +1,7 @@
 {
-  "name": "session-manager",
+  "name": "redis-session-manager",
   "version": "0.0.1",
-  "description": "Session Manager",
+  "description": "Redis Session Manager",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
