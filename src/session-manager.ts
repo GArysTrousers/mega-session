@@ -7,40 +7,66 @@ export interface Session {
   data: any;
 }
 
+export interface Options {
+  redis: {
+    url:string;
+    user: string;
+    password: string;
+    db: string | number;
+  }
+  version: string;
+  timeoutMillis: number;
+}
+
 export class SessionManager {
 
-  version: string;
-  dbIndex: number
   redis: RedisClientType;
+  options: Options;
 
-  constructor(redisUrl: string, redisDbIndex: number | string, version: string) {
-    this.version = version;
-    this.redis = createClient({ url: redisUrl });
+  constructor(options:Options) {
+    this.options = options
+    this.redis = createClient({ 
+      url: options.redis.url,
+      database: Number(options.redis.db)
+    });
     this.redis.on('error', (err) => console.log(err));
-    this.dbIndex = Number(redisDbIndex)
   }
 
   async connect() {
     await this.redis.connect();
-    await this.redis.select(this.dbIndex);
   }
 
   async disconnect() {
     await this.redis.disconnect()
   }
 
+  async startSession(id:string): Promise<[string, Session]> {
+    let session = await this.getSession(id)
+
+    if (session == null) return this.newSession()
+    if (session.lastUsed < Date.now() - this.options.timeoutMillis) {
+      await this.removeSession(id)
+      return this.newSession()
+    }
+    
+    session.lastUsed = Date.now()
+    return [id, session]
+  }
+
   async getSession(id: string): Promise<Session | null> {
     if (!id) return null;
-    let session = await this.redis.get(id);
-    return session
-      ? JSON.parse(session) as Session
-      : null
+    try {
+      let data = await this.redis.get(id);
+      return JSON.parse(data) as Session
+    } catch (error) {
+      return null
+    }
   }
 
   newSession(data: any = {}): [string, Session] {
     let id = uuid();
     let session: Session = {
-      v: this.version,
+      v: this.options.version,
       lastUsed: Date.now(),
       data: data
     };
@@ -91,7 +117,7 @@ export class SessionManager {
           this.removeSession(s.id);
           continue;
         }
-        if (data.v !== this.version) {
+        if (data.v !== this.options.version) {
           clearedCount++;
           this.removeSession(s.id);
           continue;
