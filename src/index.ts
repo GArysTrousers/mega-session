@@ -1,1 +1,1 @@
-export { SessionManager } from './session-manager'
+export { SessionManager } from './redis-session-manager'
