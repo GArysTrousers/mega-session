@@ -13,7 +13,7 @@ let sm = new SessionManager({
         db: 0
     },
     version: "1",
-    timeoutMillis: 1000 * 60 * 60 * 24 * 3; // 3 days in millis
+    timeoutMillis: 1000 * 60 * 60 * 24 * 3, // 3 days in millis
 })
 
 export const handle: Handle = async ({ event, resolve }) => {
@@ -36,7 +36,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     return response;
 }
 
-// To log user out in a route:
+// To logout a user in a route:
 event.locals.sessionId = null
 ```
 
