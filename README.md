@@ -17,7 +17,6 @@ let sm = new SessionManager({
 })
 
 export const handle: Handle = async ({ event, resolve }) => {
-    // get sessionId cookie
     const [sessionId, session] = sm.startSession(cookies['session_id']);
     event.locals.sessionId = sessionId;
     event.locals.session = session.data;
