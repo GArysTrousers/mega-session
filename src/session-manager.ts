@@ -40,7 +40,9 @@ export class SessionManager {
     await this.redis.disconnect()
   }
 
-  async startSession(id:string): Promise<[string, Session]> {
+  async startSession(id:string | null): Promise<[string, Session]> {
+    if (id == null) return this.newSession()
+    
     let session = await this.getSession(id)
 
     if (session == null) return this.newSession()
