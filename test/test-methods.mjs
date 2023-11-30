@@ -37,7 +37,7 @@ await test("Session Manager", async () => {
   })
   await test("get session id cookie", async () => {
     let [id, sesh] = sm.newSession();
-    let cookie = sm.getSessionIdCookie(id)
+    let cookie = sm.freshCookie(id)
     assert.equal(cookie, `${sm.options.cookieName}=${id}; Max-Age=${Math.round(sm.options.timeoutMillis / 1000)}; Path=/; HttpOnly; SameSite=Strict`)
   })
   await sm.disconnect();
