@@ -1,4 +1,4 @@
-# Redis Session Manager
+# Mega Session
 
 A redis session manager (mainly designed for sveltekit)
 
@@ -12,12 +12,13 @@ let sm = new SessionManager({
         password: "",
         db: 0
     },
+    cookieName: "session_id",
     version: "1",
     timeoutMillis: 1000 * 60 * 60 * 24 * 3, // 3 days in millis
 })
 
 export const handle: Handle = async ({ event, resolve }) => {
-    const [sessionId, session] = sm.startSession(cookies['session_id']);
+    const [sessionId, session] = sm.startSession(event.cookies.get(sm.options.cookieName));
     event.locals.sessionId = sessionId;
     event.locals.session = session.data;
 
@@ -26,10 +27,10 @@ export const handle: Handle = async ({ event, resolve }) => {
     if (event.locals.sessionId) { // see below
         session.data = event.locals.session
         await sm.saveSession(sessionId, session)
-        // set sessionId cookie
+        response.headers.set('set-cookie', sm.freshCookie(sessionId))
     } else {
         await sm.removeSession(sessionId)
-        // set sessionId cookie to expired
+        response.headers.set('set-cookie', sm.expiredCookie())
     }
 
     return response;

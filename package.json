@@ -1,5 +1,5 @@
 {
-  "name": "redis-session-manager",
+  "name": "mega-session",
   "version": "0.0.1",
   "description": "Redis Session Manager",
   "main": "dist/index.js",
@@ -16,12 +16,14 @@
   "author": "GArysTrousers",
   "license": "MIT",
   "devDependencies": {
+    "@types/cookie": "^0.6.0",
     "@types/node": "^20.6.3",
     "@types/uuid": "^9.0.7",
     "rimraf": "^5.0.1",
     "typescript": "^5.2.2"
   },
   "dependencies": {
+    "cookie": "^0.6.0",
     "redis": "^4.6.11",
     "uuid": "^9.0.1"
   }

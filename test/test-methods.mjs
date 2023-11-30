@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { SessionManager } from "../dist/session-manager.js";
+import { SessionManager } from "../dist/index.js";
 
 await test("Session Manager", async () => {
   let sm = new SessionManager({
@@ -10,6 +10,7 @@ await test("Session Manager", async () => {
       password: "",
       db: 0
     },
+    cookieName: "session_id",
     version: "1",
     timeoutMillis: 1000000
   })
@@ -28,11 +29,16 @@ await test("Session Manager", async () => {
     const fetchedSesh = await sm.getSession("12345")
     assert.equal(null, fetchedSesh)
   })
-  // await test("remove sessions", async () => {
-  //   for (let id of createdSessions) {
-  //     assert.ok(await sm.removeSession(id))
-  //     assert.equal(null, await sm.getSession(id))
-  //   }
-  // })
+  await test("remove sessions", async () => {
+    for (let id of createdSessions) {
+      assert.ok(await sm.removeSession(id))
+      assert.equal(null, await sm.getSession(id))
+    }
+  })
+  await test("get session id cookie", async () => {
+    let [id, sesh] = sm.newSession();
+    let cookie = sm.getSessionIdCookie(id)
+    assert.equal(cookie, `${sm.options.cookieName}=${id}; Max-Age=${Math.round(sm.options.timeoutMillis / 1000)}; Path=/; HttpOnly; SameSite=Strict`)
+  })
   await sm.disconnect();
 })
