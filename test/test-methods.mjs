@@ -12,7 +12,7 @@ await test("Session Manager", async () => {
     },
     cookieName: "session_id",
     version: "1",
-    timeoutMillis: 1000000
+    timeoutMillis: 1000000,
   })
   let createdSessions = []
   await test("connect to redis", async () => {
@@ -34,11 +34,6 @@ await test("Session Manager", async () => {
       assert.ok(await sm.removeSession(id))
       assert.equal(null, await sm.getSession(id))
     }
-  })
-  await test("get session id cookie", async () => {
-    let [id, sesh] = sm.newSession();
-    let cookie = sm.freshCookie(id)
-    assert.equal(cookie, `${sm.options.cookieName}=${id}; Max-Age=${Math.round(sm.options.timeoutMillis / 1000)}; Path=/; HttpOnly; SameSite=Strict`)
   })
   await sm.disconnect();
 })

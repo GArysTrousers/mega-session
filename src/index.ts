@@ -1,6 +1,7 @@
 import { createClient, type RedisClientType } from "redis";
 import { v4 as uuid } from "uuid";
 import * as cookie from "cookie";
+import * as jwt from "jsonwebtoken";
 
 export interface Session {
   v: string;
@@ -18,6 +19,7 @@ export interface Options {
   cookieName: string;
   version: string;
   timeoutMillis: number;
+  jwtSecret?: string;
 }
 
 export class SessionManager {
@@ -46,6 +48,15 @@ export class SessionManager {
 
   async startSession(id: string | null): Promise<[string, Session]> {
     if (id == null) return this.newSession()
+    
+    if (this.options.jwtSecret) {
+      let token = jwt.verify(id, this.options.jwtSecret)
+      if (typeof token === 'object' && Object.hasOwn(token, 'id')) {
+        id = token.id
+      } else {
+        return this.newSession()
+      }
+    }
 
     let session = await this.getSession(id)
 
@@ -136,7 +147,11 @@ export class SessionManager {
   }
 
   freshCookie(id: string) {
-    return cookie.serialize(this.options.cookieName, id,
+    return cookie.serialize(
+      this.options.cookieName,
+      this.options.jwtSecret
+        ? jwt.sign(id, this.options.jwtSecret)
+        : id,
       {
         httpOnly: true,
         maxAge: this.maxCookieAge,
