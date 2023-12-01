@@ -1,7 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import * as cookie from "cookie";
-import * as jwt from "jsonwebtoken";
 import { SessionManager } from "../dist/index.js";
 
 await test("Session Manager", async () => {

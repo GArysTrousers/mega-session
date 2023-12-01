@@ -46,8 +46,8 @@ export class SessionManager {
     await this.redis.disconnect()
   }
 
-  async startSession(id: string | null): Promise<[string, Session]> {
-    if (id == null) return this.newSession()
+  async startSession(id: string | null | undefined): Promise<[string, Session]> {
+    if (!id) return this.newSession()
     
     if (this.options.jwtSecret) {
       let token = jwt.verify(id, this.options.jwtSecret)
