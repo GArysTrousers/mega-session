@@ -11,7 +11,8 @@ export interface Session {
 
 export interface Options {
   redis: {
-    url: string;
+    host: string;
+    port: string;
     db: string | number;
     user: string;
     password: string;
@@ -31,7 +32,7 @@ export class SessionManager {
   constructor(options: Options) {
     this.options = options
     this.redis = createClient({
-      url: options.redis.url,
+      url: `redis://${options.redis.host}:${options.redis.port}`,
       database: Number(options.redis.db)
     });
     this.redis.on('error', (err) => console.log(err));
