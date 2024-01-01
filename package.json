@@ -1,6 +1,6 @@
 {
   "name": "mega-session",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Redis Session Manager",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
