@@ -3,7 +3,7 @@
 A redis session manager (mainly designed for sveltekit)
 
 ## SvelteKit Example
-In your hooks.server.ts handle:
+In your hooks.server.ts:
 ```
 let sm = new SessionManager({
     redis: {
@@ -16,6 +16,7 @@ let sm = new SessionManager({
     version: "1",
     timeoutMillis: 1000 * 60 * 60 * 24 * 3, // 3 days in millis
 })
+await sm.connect()
 
 export const handle: Handle = async ({ event, resolve }) => {
     const [sessionId, session] = await sm.startSession(event.cookies.get(sm.options.cookieName));
