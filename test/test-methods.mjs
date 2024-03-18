@@ -1,23 +1,23 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { SessionManager } from "../dist/index.js";
+import { SessionManager, RedisProvider } from "../dist/index.js";
 
 await test("Session Manager", async () => {
-  let sm = new SessionManager({
-    redis: {
-      host: "localhost",
-      port: "6379",
-      user: "",
-      password: "",
-      db: 0
-    },
+  let sm = new SessionManager(
+    new RedisProvider({
+      host: 'localhost',
+      port: '6379',
+      db: '0',
+      user: '',
+      password: '',
+    }), {
     cookieName: "session_id",
     version: "1",
     timeoutMillis: 1000000,
   })
   let createdSessions = []
   await test("connect to redis", async () => {
-    await sm.connect()
+    await sm.init()
   })
   await test("create, save and get session", async () => {
     const [id, sesh] = sm.newSession({ name: "Bert" })
@@ -36,5 +36,5 @@ await test("Session Manager", async () => {
       assert.equal(null, await sm.getSession(id))
     }
   })
-  await sm.disconnect();
+  await sm.deinit();
 })

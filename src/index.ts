@@ -9,14 +9,88 @@ export interface Session {
   data: any;
 }
 
+interface Provider {
+  init: () => Promise<void>
+  deinit: () => Promise<void>
+  get: (id: string) => Promise<string | null>
+  set: (id: string, data: string) => Promise<boolean>
+  getCount: () => Promise<number>
+  getAll: () => Promise<{ id: string; session: string }[]>
+  remove: (id: string) => Promise<boolean>
+}
+
+type RedisOptions = {
+  host: string;
+  port: string;
+  db: string;
+  user: string;
+  password: string;
+}
+
+export class RedisProvider implements Provider {
+
+  redis: RedisClientType;
+  options: RedisOptions;
+
+  constructor(options: RedisOptions) {
+    this.options = options;
+  }
+
+  async init() {
+    this.redis = createClient({
+      url: `redis://${this.options.host}:${this.options.port}`,
+      database: Number(this.options.db)
+    });
+    this.redis.on('error', (err) => console.log(err));
+    await this.redis.connect()
+  }
+
+  async deinit() {
+    await this.redis.disconnect()
+  }
+
+  async get(id: string) {
+    return await this.redis.get(id);
+  }
+
+  async set(id: string, data: string) {
+    return await this.redis.set(id, data) === "OK";
+  }
+
+  async getCount() {
+    return await this.redis.dbSize();
+  }
+
+  async getAll() {
+    let COUNT = 2000
+    let maxKeys = 2000
+    let curser = 0
+    let res = await this.redis.scan(0, { COUNT })
+    let keys = [...res.keys]
+    while (res.cursor != 0 && keys.length <= maxKeys) {
+      curser = res.cursor
+      keys = [...keys, ...res.keys]
+      res = await this.redis.scan(curser, { COUNT })
+    }
+    keys = keys.slice(0, maxKeys)
+    let sessionData = await Promise.all(keys.map(async (v) => {
+      return await this.redis.get(v)
+    }))
+    let sessions = keys.map((id, i) => {
+      return {
+        id: id,
+        session: sessionData[i]
+      }
+    })
+    return sessions
+  }
+
+  async remove(id: string) {
+    return await this.redis.del([id]) > 0
+  }
+}
+
 export interface Options {
-  redis: {
-    host: string;
-    port: string;
-    db: string | number;
-    user: string;
-    password: string;
-  },
   cookieName: string;
   version: string;
   timeoutMillis: number;
@@ -25,31 +99,27 @@ export interface Options {
 
 export class SessionManager {
 
-  redis: RedisClientType;
   options: Options;
+  provider: Provider;
   maxCookieAge: number;
 
-  constructor(options: Options) {
+  constructor(provider: Provider, options: Options) {
     this.options = options
-    this.redis = createClient({
-      url: `redis://${options.redis.host}:${options.redis.port}`,
-      database: Number(options.redis.db)
-    });
-    this.redis.on('error', (err) => console.log(err));
-    this.maxCookieAge = Math.round(this.options.timeoutMillis / 1000)
+    this.provider = provider;
+    this.maxCookieAge = Math.round(options.timeoutMillis / 1000)
   }
 
-  async connect() {
-    await this.redis.connect();
+  async init() {
+    await this.provider.init();
   }
 
-  async disconnect() {
-    await this.redis.disconnect()
+  async deinit() {
+    await this.provider.deinit();
   }
 
   async startSession(id: string | null | undefined): Promise<[string, Session]> {
     if (!id) return this.newSession()
-    
+
     if (this.options.jwtSecret) {
       let token = jwt.verify(id, this.options.jwtSecret)
       if (typeof token === 'object' && Object.hasOwn(token, 'id')) {
@@ -74,7 +144,7 @@ export class SessionManager {
   async getSession(id: string): Promise<Session | null> {
     if (!id) return null;
     try {
-      let data = await this.redis.get(id);
+      let data = await this.provider.get(id)
       return JSON.parse(data) as Session
     } catch (error) {
       return null
@@ -92,39 +162,22 @@ export class SessionManager {
   }
 
   async saveSession(id: string, session: Session) {
-    return await this.redis.set(id, JSON.stringify(session)) === "OK";
+    return await this.provider.set(id, JSON.stringify(session))
   }
 
   async getSessionCount() {
-    return await this.redis.dbSize();
+    return await this.provider.getCount()
   }
 
   async getAllSessions() {
-    let COUNT = 2000
-    let maxKeys = 2000
-    let curser = 0
-    let res = await this.redis.scan(0, { COUNT })
-    let keys = [...res.keys]
-    while (res.cursor != 0 && keys.length <= maxKeys) {
-      curser = res.cursor
-      keys = [...keys, ...res.keys]
-      res = await this.redis.scan(curser, { COUNT })
-    }
-    keys = keys.slice(0, maxKeys)
-    let sessionData = await Promise.all(keys.map(async (v) => {
-      return await this.redis.get(v)
+    return (await this.provider.getAll()).map((v) => ({
+      id: v.id,
+      session: JSON.parse(v.session)
     }))
-    let sessions = keys.map((id, i) => {
-      return {
-        id: id,
-        session: JSON.parse(sessionData[i]) as Session
-      }
-    })
-    return sessions
   }
 
   async removeSession(id: string) {
-    return await this.redis.del([id]) > 0
+    return await this.provider.remove(id)
   }
 
   async removeOldSessions() {
