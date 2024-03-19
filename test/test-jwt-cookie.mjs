@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import * as cookie from "cookie";
-import { RedisProvider, SessionManager } from "../dist/index.js";
+import { SessionManager } from "../dist/index.js";
+import { RedisProvider } from "../dist/redis-provider.js";
 
 await test("Session Manager", async () => {
   let sm = new SessionManager(
