@@ -1,4 +1,4 @@
-import { Provider } from ".";
+import { Provider } from "./session-manager";
 
 export class InternalProvider implements Provider {
 
