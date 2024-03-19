@@ -1,7 +1,7 @@
 import { createClient, type RedisClientType } from "redis";
 import { Provider } from "./session-manager";
 
-type RedisOptions = {
+export type RedisOptions = {
   host: string;
   port: string;
   db: string;

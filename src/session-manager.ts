@@ -2,7 +2,7 @@ import { v4 as uuid } from "uuid";
 import * as cookie from "cookie";
 import * as jwt from "jsonwebtoken";
 
-export interface Session {
+export type Session = {
   v: string;
   lastUsed: number;
   data: any;
