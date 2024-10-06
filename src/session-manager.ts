@@ -2,9 +2,11 @@ import { v4 as uuid } from "uuid";
 import * as cookie from "cookie";
 import * as jwt from "jsonwebtoken";
 
-export type Session = {
+export interface Session {
+  id: string;
   v: string;
   lastUsed: number;
+  logout: boolean;
   data: any;
 }
 
@@ -45,7 +47,7 @@ export class SessionManager {
     await this.provider.deinit();
   }
 
-  async startSession(id: string | null | undefined): Promise<[string, Session]> {
+  async startSession(id: string | null | undefined): Promise<Session> {
     if (!id) return this.newSession()
 
     if (this.options.jwtSecret) {
@@ -66,7 +68,7 @@ export class SessionManager {
     }
 
     session.lastUsed = Date.now()
-    return [id, session]
+    return session
   }
 
   async getSession(id: string): Promise<Session | null> {
@@ -79,18 +81,25 @@ export class SessionManager {
     }
   }
 
-  newSession(data: any = {}): [string, Session] {
-    let id = uuid();
+  newSession(data: any = {}): Session {
     let session: Session = {
+      id: uuid(),
       v: this.options.version,
       lastUsed: Date.now(),
-      data: data
+      logout: false,
+      data: data,
     };
-    return [id, session];
+    return session;
   }
 
-  async saveSession(id: string, session: Session) {
-    return await this.provider.set(id, JSON.stringify(session))
+  async saveSession(session: Session) {
+    if (session.logout === false) {
+      await this.provider.set(session.id, JSON.stringify(session))
+      return this.freshCookie(session.id)
+    } else {
+      await this.provider.remove(session.id)
+      return this.expiredCookie()
+    }
   }
 
   async getSessionCount() {

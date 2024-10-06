@@ -15,11 +15,11 @@ await test("Session Manager - Internal", async () => {
     await sm.init()
   })
   await test("create, save and get session", async () => {
-    const [id, sesh] = sm.newSession({ name: "Bert" })
-    createdSessions.push(id)
-    await sm.saveSession(id, sesh)
-    const fetchedSesh = await sm.getSession(id)
-    assert.deepEqual(sesh, fetchedSesh)
+    const session = sm.newSession({ name: "Bert" })    
+    createdSessions.push(session.id)
+    await sm.saveSession(session)
+    const fetchedSession = await sm.getSession(session.id)
+    assert.deepEqual(session, fetchedSession)
   })
   await test("get session that doesn't exist", async () => {
     const fetchedSesh = await sm.getSession("12345")

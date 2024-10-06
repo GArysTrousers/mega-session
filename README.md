@@ -17,26 +17,19 @@ let sm = new SessionManager(
 await sm.init()
 
 export const handle: Handle = async ({ event, resolve }) => {
-  const [sessionId, session] = await sm.startSession(event.cookies.get(sm.options.cookieName));
-  event.locals.sessionId = sessionId;
-  event.locals.session = session.data;
+  // get or create session
+  event.locals.session = await sm.startSession(event.cookies.get(sm.options.cookieName));
 
   let response = await resolve(event);
 
-  if (event.locals.sessionId) { // see below
-      session.data = event.locals.session
-      await sm.saveSession(sessionId, session)
-      response.headers.set('set-cookie', sm.freshCookie(sessionId))
-  } else {
-      await sm.removeSession(sessionId)
-      response.headers.set('set-cookie', sm.expiredCookie())
-  }
+  // save session
+  response.headers.set('set-cookie', sm.saveSession(event.locals.session))
 
   return response;
 }
 
 // To logout a user in a route:
-event.locals.sessionId = null
+event.locals.session.logout = true
 ```
 
 ## Session Cleanup
