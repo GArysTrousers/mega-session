@@ -23,7 +23,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   let response = await resolve(event);
 
   // save session
-  response.headers.set('set-cookie', sm.saveSession(event.locals.session))
+  response.headers.set('set-cookie', await sm.saveSession(event.locals.session))
 
   return response;
 }
