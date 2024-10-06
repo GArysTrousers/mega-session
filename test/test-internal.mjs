@@ -11,7 +11,7 @@ await test("Session Manager - Internal", async () => {
     timeoutMillis: 1000000,
   })
   let createdSessions = []
-  await test("connect to redis", async () => {
+  await test("init internal", async () => {
     await sm.init()
   })
   await test("create, save and get session", async () => {

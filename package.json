@@ -1,6 +1,6 @@
 {
   "name": "mega-session",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Redis Session Manager",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -24,9 +24,8 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "cookie": "^0.6.0",
+    "cookie": "^0.7.1",
     "jsonwebtoken": "^9.0.2",
-    "redis": "^4.6.11",
     "uuid": "^9.0.1"
   }
 }

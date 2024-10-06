@@ -8,13 +8,7 @@ Use the built in Redis data provider or create your own for another backend, jus
 In your hooks.server.ts:
 ```
 let sm = new SessionManager(
-  new RedisProvider({
-    host: 'localhost',
-    port: '6379',
-    db: '0',
-    user: '',
-    password: '',
-  }), {
+  new InternalProvider(), {
   cookieName: "session_id",
   version: "1",
   timeoutMillis: 1000000,
