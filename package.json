@@ -11,7 +11,7 @@
     "build": "rimraf ./dist && npx tsc",
     "test": "npx tsc && node --test",
     "test-q": "node --test",
-    "test-c": "rimraf ./dist && npx tsc && node --test",
+    "test-c": "rimraf ./dist && npx tsc && node --test"
   },
   "author": "GArysTrousers",
   "license": "MIT",
